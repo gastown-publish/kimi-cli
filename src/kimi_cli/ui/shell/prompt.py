@@ -682,9 +682,13 @@ class CustomPromptSession:
         # Build key bindings
         _kb = KeyBindings()
 
-        @_kb.add("enter", filter=has_completions)
+        @_kb.add("tab", filter=has_completions)
         def _(event: KeyPressEvent) -> None:
-            """Accept the first completion when Enter is pressed and completions are shown."""
+            """Accept the first completion when Tab is pressed and completions are shown.
+
+            Changed from Enter to Tab for Gas Town compatibility: Enter should
+            always submit the prompt (important for tmux send-keys delivery).
+            """
             buff = event.current_buffer
             if buff.complete_state and buff.complete_state.completions:
                 # Get the current completion, or use the first one if none is selected
@@ -692,6 +696,17 @@ class CustomPromptSession:
                 if not completion:
                     completion = buff.complete_state.completions[0]
                 buff.apply_completion(completion)
+
+        @_kb.add("enter", filter=has_completions)
+        def _(event: KeyPressEvent) -> None:
+            """Dismiss completions and submit when Enter is pressed.
+
+            Gas Town compatibility: nudge messages arrive via tmux send-keys
+            followed by Enter. Completions must not intercept the Enter key.
+            """
+            buff = event.current_buffer
+            buff.cancel_completion()
+            buff.validate_and_handle()
 
         @_kb.add("c-x", eager=True)
         def _(event: KeyPressEvent) -> None:
