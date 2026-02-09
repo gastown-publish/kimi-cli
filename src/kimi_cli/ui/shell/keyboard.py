@@ -5,6 +5,7 @@ import sys
 import threading
 import time
 from collections.abc import AsyncGenerator, Callable
+from dataclasses import dataclass
 from enum import Enum, auto
 
 from kimi_cli.utils.aioqueue import Queue
@@ -19,11 +20,24 @@ class KeyEvent(Enum):
     ESCAPE = auto()
     TAB = auto()
     CTRL_E = auto()
+    BACKSPACE = auto()
+    CTRL_U = auto()
+
+
+@dataclass(slots=True, frozen=True)
+class CharInput:
+    """A printable character typed by the user."""
+
+    char: str
+
+
+type KeyboardInput = KeyEvent | CharInput
+"""Union of special key events and typed characters."""
 
 
 class KeyboardListener:
     def __init__(self) -> None:
-        self._queue = Queue[KeyEvent]()
+        self._queue = Queue[KeyboardInput]()
         self._cancel_event = threading.Event()
         self._pause_event = threading.Event()
         self._paused_event = threading.Event()
@@ -35,7 +49,7 @@ class KeyboardListener:
             return
         self._loop = asyncio.get_running_loop()
 
-        def emit(event: KeyEvent) -> None:
+        def emit(event: KeyboardInput) -> None:
             if self._loop is None:
                 return
             self._loop.call_soon_threadsafe(self._queue.put_nowait, event)
@@ -69,11 +83,11 @@ class KeyboardListener:
     async def resume(self) -> None:
         await asyncio.to_thread(self._resume_sync)
 
-    async def get(self) -> KeyEvent:
+    async def get(self) -> KeyboardInput:
         return await self._queue.get()
 
 
-async def listen_for_keyboard() -> AsyncGenerator[KeyEvent]:
+async def listen_for_keyboard() -> AsyncGenerator[KeyboardInput]:
     listener = KeyboardListener()
     await listener.start()
 
@@ -88,7 +102,7 @@ def _listen_for_keyboard_thread(
     cancel: threading.Event,
     pause: threading.Event,
     paused: threading.Event,
-    emit: Callable[[KeyEvent], None],
+    emit: Callable[[KeyboardInput], None],
 ) -> None:
     if sys.platform == "win32":
         _listen_for_keyboard_windows(cancel, pause, paused, emit)
@@ -100,7 +114,7 @@ def _listen_for_keyboard_unix(
     cancel: threading.Event,
     pause: threading.Event,
     paused: threading.Event,
-    emit: Callable[[KeyEvent], None],
+    emit: Callable[[KeyboardInput], None],
 ) -> None:
     if sys.platform == "win32":
         raise RuntimeError("Unix keyboard listener requires a non-Windows platform")
@@ -179,6 +193,12 @@ def _listen_for_keyboard_unix(
                 emit(KeyEvent.TAB)
             elif c == b"\x05":  # Ctrl+E
                 emit(KeyEvent.CTRL_E)
+            elif c == b"\x15":  # Ctrl+U - clear line
+                emit(KeyEvent.CTRL_U)
+            elif c in (b"\x7f", b"\x08"):  # DEL or BS (backspace)
+                emit(KeyEvent.BACKSPACE)
+            elif len(c) == 1 and 32 <= c[0] < 127:  # printable ASCII
+                emit(CharInput(chr(c[0])))
     finally:
         termios.tcsetattr(fd, termios.TCSAFLUSH, oldterm)
 
@@ -187,7 +207,7 @@ def _listen_for_keyboard_windows(
     cancel: threading.Event,
     pause: threading.Event,
     paused: threading.Event,
-    emit: Callable[[KeyEvent], None],
+    emit: Callable[[KeyboardInput], None],
 ) -> None:
     if sys.platform != "win32":
         raise RuntimeError("Windows keyboard listener requires a Windows platform")
@@ -235,6 +255,12 @@ def _listen_for_keyboard_windows(
                 emit(KeyEvent.TAB)
             elif c == b"\x05":  # Ctrl+E
                 emit(KeyEvent.CTRL_E)
+            elif c == b"\x15":  # Ctrl+U - clear line
+                emit(KeyEvent.CTRL_U)
+            elif c in (b"\x7f", b"\x08"):  # DEL or BS (backspace)
+                emit(KeyEvent.BACKSPACE)
+            elif len(c) == 1 and 32 <= c[0] < 127:  # printable ASCII
+                emit(CharInput(chr(c[0])))
         else:
             if cancel.is_set():
                 break

@@ -19,7 +19,7 @@ from rich.text import Text
 
 from kimi_cli.tools import extract_key_argument
 from kimi_cli.ui.shell.console import console
-from kimi_cli.ui.shell.keyboard import KeyboardListener, KeyEvent
+from kimi_cli.ui.shell.keyboard import CharInput, KeyboardInput, KeyboardListener, KeyEvent
 from kimi_cli.utils.aioqueue import QueueShutDown
 from kimi_cli.utils.diff import format_unified_diff
 from kimi_cli.utils.logging import logger
@@ -65,6 +65,7 @@ async def visualize(
     *,
     initial_status: StatusUpdate,
     cancel_event: asyncio.Event | None = None,
+    message_queue: asyncio.Queue[str] | None = None,
 ):
     """
     A loop to consume agent events and visualize the agent behavior.
@@ -73,8 +74,12 @@ async def visualize(
         wire: Communication channel with the agent
         initial_status: Initial status snapshot
         cancel_event: Event that can be set (e.g., by ESC key) to cancel the run
+        message_queue: Optional queue for type-ahead messages. When provided,
+            users can type their next message while the agent is working.
+            Pressing Enter queues the message for processing after the
+            current turn finishes.
     """
-    view = _LiveView(initial_status, cancel_event)
+    view = _LiveView(initial_status, cancel_event, message_queue=message_queue)
     await view.visualize_loop(wire)
 
 
@@ -424,7 +429,7 @@ class _StatusBlock:
 
 @asynccontextmanager
 async def _keyboard_listener(
-    handler: Callable[[KeyboardListener, KeyEvent], Awaitable[None]],
+    handler: Callable[[KeyboardListener, KeyboardInput], Awaitable[None]],
 ):
     listener = KeyboardListener()
     await listener.start()
@@ -445,7 +450,13 @@ async def _keyboard_listener(
 
 
 class _LiveView:
-    def __init__(self, initial_status: StatusUpdate, cancel_event: asyncio.Event | None = None):
+    def __init__(
+        self,
+        initial_status: StatusUpdate,
+        cancel_event: asyncio.Event | None = None,
+        *,
+        message_queue: asyncio.Queue[str] | None = None,
+    ):
         self._cancel_event = cancel_event
 
         self._mooning_spinner: Spinner | None = None
@@ -462,6 +473,11 @@ class _LiveView:
         self._current_approval_request_panel: _ApprovalRequestPanel | None = None
         self._reject_all_following = False
         self._status_block = _StatusBlock(initial_status)
+
+        # Message queuing (type-ahead) support
+        self._message_queue = message_queue
+        self._input_buffer = ""
+        self._queued_count = 0
 
         self._need_recompose = False
 
@@ -480,7 +496,53 @@ class _LiveView:
             vertical_overflow="visible",
         ) as live:
 
-            async def keyboard_handler(listener: KeyboardListener, event: KeyEvent) -> None:
+            async def keyboard_handler(
+                listener: KeyboardListener, event: KeyboardInput
+            ) -> None:
+                # Handle typed characters for message queuing
+                if isinstance(event, CharInput):
+                    if self._message_queue is not None:
+                        self._input_buffer += event.char
+                        self.refresh_soon()
+                        live.update(self.compose(), refresh=True)
+                        self._need_recompose = False
+                    return
+
+                assert isinstance(event, KeyEvent)
+
+                # Handle backspace for input buffer
+                if event == KeyEvent.BACKSPACE:
+                    if self._input_buffer:
+                        self._input_buffer = self._input_buffer[:-1]
+                        self.refresh_soon()
+                        live.update(self.compose(), refresh=True)
+                        self._need_recompose = False
+                    return
+
+                # Handle Ctrl+U to clear input buffer
+                if event == KeyEvent.CTRL_U:
+                    if self._input_buffer:
+                        self._input_buffer = ""
+                        self.refresh_soon()
+                        live.update(self.compose(), refresh=True)
+                        self._need_recompose = False
+                    return
+
+                # Handle Enter to queue typed message
+                if event == KeyEvent.ENTER:
+                    if (
+                        self._input_buffer
+                        and self._message_queue is not None
+                        and not self._current_approval_request_panel
+                    ):
+                        self._message_queue.put_nowait(self._input_buffer.strip())
+                        self._queued_count += 1
+                        self._input_buffer = ""
+                        self.refresh_soon()
+                        live.update(self.compose(), refresh=True)
+                        self._need_recompose = False
+                        return
+
                 # Handle Ctrl+E specially - pause Live while the pager is active
                 if event == KeyEvent.CTRL_E:
                     if (
@@ -540,8 +602,28 @@ class _LiveView:
                 blocks.append(tool_call.compose())
         if self._current_approval_request_panel:
             blocks.append(self._current_approval_request_panel.render())
+        if self._message_queue is not None:
+            blocks.append(self._compose_input_area())
         blocks.append(self._status_block.render())
         return Group(*blocks)
+
+    def _compose_input_area(self) -> RenderableType:
+        """Render the type-ahead input area at the bottom of the live view."""
+        parts: list[RenderableType] = []
+        if self._queued_count > 0:
+            parts.append(
+                Text.from_markup(
+                    f"[yellow]{self._queued_count} message{'s' if self._queued_count > 1 else ''}"
+                    " queued[/yellow]"
+                )
+            )
+        cursor = "\u2588"  # block cursor character
+        if self._input_buffer:
+            parts.append(Text(f"> {self._input_buffer}{cursor}", style="grey50"))
+        else:
+            hint = "type to queue next message..." if self._queued_count == 0 else ""
+            parts.append(Text(f"> {cursor} {hint}", style="dim"))
+        return Group(*parts)
 
     def dispatch_wire_message(self, msg: WireMessage) -> None:
         """Dispatch the Wire message to UI components."""

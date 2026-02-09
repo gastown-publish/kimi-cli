@@ -42,6 +42,8 @@ class Shell:
             **{cmd.name: cmd for cmd in shell_slash_registry.list_commands()},
         }
         """Shell-level slash commands + soul-level slash commands. Name to command mapping."""
+        self._message_queue: asyncio.Queue[str] = asyncio.Queue()
+        """Queue for type-ahead messages typed while the agent is working."""
 
     @property
     def available_slash_commands(self) -> dict[str, SlashCommand[Any]]:
@@ -79,6 +81,25 @@ class Shell:
             try:
                 while True:
                     ensure_tty_sane()
+
+                    # Check for queued type-ahead messages before prompting
+                    queued_input: str | None = None
+                    try:
+                        queued_input = self._message_queue.get_nowait()
+                    except asyncio.QueueEmpty:
+                        pass
+
+                    if queued_input is not None:
+                        logger.debug(
+                            "Processing queued message: {input}", input=queued_input
+                        )
+                        if queued_input.strip():
+                            console.print(
+                                f"[grey50]queued >[/grey50] {queued_input}"
+                            )
+                            await self.run_soul_command(queued_input)
+                        continue
+
                     try:
                         ensure_new_line()
                         user_input = await prompt_session.prompt()
@@ -237,6 +258,7 @@ class Shell:
                     wire.ui_side(merge=False),  # shell UI maintain its own merge buffer
                     initial_status=StatusUpdate(context_usage=self.soul.status.context_usage),
                     cancel_event=cancel_event,
+                    message_queue=self._message_queue,
                 ),
                 cancel_event,
                 self.soul.wire_file if isinstance(self.soul, KimiSoul) else None,
