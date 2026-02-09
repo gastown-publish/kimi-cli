@@ -285,7 +285,7 @@ CLAUDE.md → AGENTS.md (symlinked by kimigas when GT_ROLE is set)
 
 Kimi Code CLI's interactive shell uses [prompt-toolkit](https://python-prompt-toolkit.readthedocs.io/) for its TUI. When Gas Town delivers messages via `tmux send-keys`, the Enter key must always submit the prompt rather than accepting autocompletions.
 
-The [gastown-publish/kimi-cli](https://github.com/gastown-publish/kimi-cli) fork includes a patch that moves completion acceptance from Enter to Tab, ensuring reliable message delivery from `gt nudge`. If you're using the upstream kimi-cli, nudged messages may require an extra Enter to submit.
+The [gastown-publish/kimigas](https://github.com/gastown-publish/kimigas) fork includes a patch that moves completion acceptance from Enter to Tab, ensuring reliable message delivery from `gt nudge`. If you're using the upstream kimi-cli, nudged messages may require an extra Enter to submit.
 
 **The patch** (in `src/kimi_cli/ui/shell/prompt.py`):
 
@@ -373,7 +373,7 @@ Run `kimi login` to authenticate with Kimi Code, or configure an API key in `~/.
 
 ### Nudge text not auto-submitting
 
-If `gt nudge` delivers text but kimi doesn't process it, the prompt-toolkit completion popup may be intercepting Enter. Use the [gastown-publish/kimi-cli](https://github.com/gastown-publish/kimi-cli) fork which patches this behavior, or send an extra Enter:
+If `gt nudge` delivers text but kimi doesn't process it, the prompt-toolkit completion popup may be intercepting Enter. Use the [gastown-publish/kimigas](https://github.com/gastown-publish/kimigas) fork which patches this behavior, or send an extra Enter:
 
 ```sh
 tmux send-keys -t <session> Enter
