@@ -1,12 +1,10 @@
-# Kimi Code CLI
+# kimigas — Kimi Code CLI for Gas Town
 
-[![Commit Activity](https://img.shields.io/github/commit-activity/w/MoonshotAI/kimi-cli)](https://github.com/MoonshotAI/kimi-cli/graphs/commit-activity)
-[![Checks](https://img.shields.io/github/check-runs/MoonshotAI/kimi-cli/main)](https://github.com/MoonshotAI/kimi-cli/actions)
-[![Version](https://img.shields.io/pypi/v/kimi-cli)](https://pypi.org/project/kimi-cli/)
-[![Downloads](https://img.shields.io/pypi/dw/kimi-cli)](https://pypistats.org/packages/kimi-cli)
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/MoonshotAI/kimi-cli)
+[![Upstream](https://img.shields.io/badge/upstream-MoonshotAI%2Fkimi--cli-blue)](https://github.com/MoonshotAI/kimi-cli)
+[![Sync Status](https://img.shields.io/github/actions/workflow/status/gastown-publish/kimigas/sync-upstream.yml?label=upstream%20sync)](https://github.com/gastown-publish/kimigas/actions)
+[![Version](https://img.shields.io/pypi/v/kimi-cli?label=upstream%20version)](https://pypi.org/project/kimi-cli/)
 
-[Kimi Code](https://www.kimi.com/code/) | [Documentation](https://moonshotai.github.io/kimi-cli/en/) | [文档](https://moonshotai.github.io/kimi-cli/zh/)
+[Kimi Code](https://www.kimi.com/code/) | [Gas Town Guide](docs/en/guides/gastown.md) | [Upstream Docs](https://moonshotai.github.io/kimi-cli/en/)
 
 Kimi Code CLI is an AI agent that runs in the terminal, helping you complete software development tasks and terminal operations. It can read and edit code, execute shell commands, search and fetch web pages, and autonomously plan and adjust actions during execution.
 
@@ -154,11 +152,11 @@ See more features in the [Documentation](https://moonshotai.github.io/kimi-cli/e
 
 ## Development
 
-To develop Kimi Code CLI, run:
+To develop the kimigas fork, run:
 
 ```sh
-git clone https://github.com/MoonshotAI/kimi-cli.git
-cd kimi-cli
+git clone https://github.com/gastown-publish/kimigas.git
+cd kimigas
 
 make prepare  # prepare the development environment
 ```

@@ -305,6 +305,39 @@ Kimi Code CLI natively reads `AGENTS.md` files, which is the standard project in
 CLAUDE.md → AGENTS.md (symlinked by kimigas when GT_ROLE is set)
 ```
 
+## Compound Engineering Skills
+
+The kimigas fork includes the [compound-engineering plugin](https://github.com/EveryInc/compound-engineering-plugin) adapted as native kimi skills. These are available as `/skill:*` slash commands:
+
+### Workflow skills
+
+| Skill | Description |
+|-------|-------------|
+| `/skill:workflows-brainstorm` | Explore requirements before planning |
+| `/skill:workflows-plan` | Create detailed implementation plans |
+| `/skill:deepen-plan` | Enhance plans with research |
+| `/skill:workflows-work` | Execute plans with quality checks |
+| `/skill:workflows-review` | Multi-perspective code review |
+| `/skill:workflows-compound` | Document solved problems |
+| `/skill:lfg` | Full autonomous plan→work→review→compound cycle |
+| `/skill:technical-review` | Architecture and conventions review |
+| `/skill:triage` | Prioritize issues and findings |
+
+### Plugin skills (from compound-engineering)
+
+| Skill | Description |
+|-------|-------------|
+| `/skill:brainstorming` | Collaborative idea exploration |
+| `/skill:frontend-design` | Production-grade frontend interfaces |
+| `/skill:git-worktree` | Parallel development with worktrees |
+| `/skill:file-todos` | File-based todo tracking |
+| `/skill:document-review` | Structured document review |
+| `/skill:orchestrating-swarms` | Multi-agent orchestration patterns |
+| `/skill:compound-docs` | Capture solutions as searchable docs |
+| `/skill:gemini-imagegen` | Image generation via Gemini API |
+
+Install skills to `~/.kimi/skills/` — kimi discovers them automatically. See the [compound-engineering README](https://github.com/EveryInc/compound-engineering-plugin) for details.
+
 ## Prompt-toolkit compatibility
 
 Kimi Code CLI's interactive shell uses [prompt-toolkit](https://python-prompt-toolkit.readthedocs.io/) for its TUI. When Gas Town delivers messages via `tmux send-keys`, the Enter key must always submit the prompt rather than accepting autocompletions.

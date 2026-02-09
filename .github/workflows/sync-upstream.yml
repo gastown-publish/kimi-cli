@@ -222,6 +222,18 @@ jobs:
         run: |
           uv run python tests_gastown/test_print_smoke.py
 
+      - name: Run gastown queue smoke test
+        env:
+          UV_PYTHON: ${{ steps.setup-python.outputs.python-path }}
+        run: |
+          uv run python tests_gastown/test_queue_smoke.py
+
+      - name: Run gastown skills discovery smoke test
+        env:
+          UV_PYTHON: ${{ steps.setup-python.outputs.python-path }}
+        run: |
+          uv run python tests_gastown/test_skills_smoke.py
+
   # ─── Step 4: Run lint checks ────────────────────────────────
   lint-check:
     needs: [check-upstream, sync-upstream]
