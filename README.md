@@ -12,7 +12,19 @@ Kimi Code CLI is an AI agent that runs in the terminal, helping you complete sof
 
 ## Getting Started
 
-See [Getting Started](https://moonshotai.github.io/kimi-cli/en/guides/getting-started.html) for how to install and start using Kimi Code CLI.
+> **This is the [Gas Town fork](https://github.com/gastown-publish/kimigas)** with tmux compatibility patches, message queuing, and multi-agent orchestration support. Install from this repo (not PyPI) to get these features:
+>
+> ```sh
+> # Option 1: uv (recommended)
+> uv tool install git+https://github.com/gastown-publish/kimigas.git
+>
+> # Option 2: pip
+> pip install git+https://github.com/gastown-publish/kimigas.git
+> ```
+>
+> See the [Gas Town integration guide](docs/en/guides/gastown.md) for setup details.
+
+For upstream documentation, see [Getting Started](https://moonshotai.github.io/kimi-cli/en/guides/getting-started.html).
 
 ## Key Features
 

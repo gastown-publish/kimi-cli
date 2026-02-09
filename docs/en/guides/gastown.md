@@ -17,8 +17,32 @@ Kimi Code CLI integrates with Gas Town through three interfaces:
 ## Prerequisites
 
 - [Gas Town](https://github.com/steveyegge/gastown) installed and configured (`gt` CLI available)
-- Kimi Code CLI installed (`kimi --version`)
+- Kimi Code CLI installed **from this fork** (see below)
 - Kimi Code CLI authenticated (`kimi login` or API key configured)
+
+## Installation
+
+**Important:** Install from the [gastown-publish/kimigas](https://github.com/gastown-publish/kimigas) fork, not from PyPI. The PyPI `kimi-cli` package is the upstream version without Gas Town patches (tmux compatibility, message queuing).
+
+```sh
+# Option 1: uv tool install (recommended)
+uv tool install git+https://github.com/gastown-publish/kimigas.git
+
+# Option 2: pip install
+pip install git+https://github.com/gastown-publish/kimigas.git
+
+# Option 3: clone and install locally
+git clone https://github.com/gastown-publish/kimigas.git
+cd kimigas
+uv tool install .
+```
+
+Verify:
+
+```sh
+kimi --version
+# Should show: kimi, version X.Y.Z
+```
 
 ## Quick start
 
@@ -357,10 +381,10 @@ gt crew list --rig myapp
 Error: kimi-cli not found
 ```
 
-Install kimi-cli:
+Install from the Gas Town fork (not PyPI):
 
 ```sh
-uv tool install --python 3.13 kimi-cli
+uv tool install git+https://github.com/gastown-publish/kimigas.git
 ```
 
 ### LLM not configured
