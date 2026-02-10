@@ -71,24 +71,35 @@ jobs:
         run: make build-bin
 
       - name: Package binary
-        shell: bash
+        shell: python
+        env:
+          TAG: ${{ github.ref_name }}
+          TARGET: ${{ matrix.target }}
         run: |
-          set -euo pipefail
-          TAG="${GITHUB_REF_NAME#v}"
-          TARGET="${{ matrix.target }}"
-          mkdir -p artifacts
+          import os, pathlib, tarfile, zipfile
 
-          if [[ "${{ matrix.os }}" == "windows" ]]; then
-            BINARY="dist/onefile/kimi.exe"
-            ARCHIVE="artifacts/kimigas-${TAG}-${TARGET}.zip"
-            cd dist/onefile && zip -9 "../../${ARCHIVE}" kimi.exe && cd ../..
-          else
-            BINARY="dist/onefile/kimi"
-            ARCHIVE="artifacts/kimigas-${TAG}-${TARGET}.tar.gz"
-            tar -czf "${ARCHIVE}" -C dist/onefile kimi
-          fi
+          tag = os.environ["TAG"].lstrip("v")
+          target = os.environ["TARGET"]
+          is_windows = "windows" in target
 
-          echo "Built: ${ARCHIVE}"
+          artifacts = pathlib.Path("artifacts")
+          artifacts.mkdir(exist_ok=True)
+
+          binary_name = "kimi.exe" if is_windows else "kimi"
+          binary_path = pathlib.Path("dist/onefile") / binary_name
+          if not binary_path.exists():
+              raise SystemExit(f"Binary not found: {binary_path}")
+
+          if is_windows:
+              archive = artifacts / f"kimigas-{tag}-{target}.zip"
+              with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as zf:
+                  zf.write(binary_path, arcname=binary_name)
+          else:
+              archive = artifacts / f"kimigas-{tag}-{target}.tar.gz"
+              with tarfile.open(archive, "w:gz") as tf:
+                  tf.add(binary_path, arcname="kimi")
+
+          print(f"Built: {archive}")
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
