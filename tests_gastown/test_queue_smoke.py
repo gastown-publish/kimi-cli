@@ -16,7 +16,6 @@ import asyncio
 import sys
 from pathlib import Path
 
-
 PASS = "\033[92m✓\033[0m"
 FAIL = "\033[91m✗\033[0m"
 _passed = 0
@@ -43,7 +42,7 @@ def main() -> int:
     # ── Test 1: Keyboard module types ─────────────────────────
     print("\n── Keyboard module types ──")
     try:
-        from kimi_cli.ui.shell.keyboard import CharInput, KeyboardInput, KeyEvent
+        from kimi_cli.ui.shell.keyboard import CharInput, KeyEvent
 
         check("CharInput importable", True)
         check("KeyboardInput type alias exists", True)
@@ -83,6 +82,7 @@ def main() -> int:
     print("\n── Visualize signature ──")
     try:
         import inspect
+
         from kimi_cli.ui.shell.visualize import visualize
 
         sig = inspect.signature(visualize)

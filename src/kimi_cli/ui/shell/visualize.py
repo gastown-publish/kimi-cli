@@ -496,9 +496,7 @@ class _LiveView:
             vertical_overflow="visible",
         ) as live:
 
-            async def keyboard_handler(
-                listener: KeyboardListener, event: KeyboardInput
-            ) -> None:
+            async def keyboard_handler(listener: KeyboardListener, event: KeyboardInput) -> None:
                 # Handle typed characters for message queuing
                 if isinstance(event, CharInput):
                     if self._message_queue is not None:
@@ -529,19 +527,19 @@ class _LiveView:
                     return
 
                 # Handle Enter to queue typed message
-                if event == KeyEvent.ENTER:
-                    if (
-                        self._input_buffer
-                        and self._message_queue is not None
-                        and not self._current_approval_request_panel
-                    ):
-                        self._message_queue.put_nowait(self._input_buffer.strip())
-                        self._queued_count += 1
-                        self._input_buffer = ""
-                        self.refresh_soon()
-                        live.update(self.compose(), refresh=True)
-                        self._need_recompose = False
-                        return
+                if (
+                    event == KeyEvent.ENTER
+                    and self._input_buffer
+                    and self._message_queue is not None
+                    and not self._current_approval_request_panel
+                ):
+                    self._message_queue.put_nowait(self._input_buffer.strip())
+                    self._queued_count += 1
+                    self._input_buffer = ""
+                    self.refresh_soon()
+                    live.update(self.compose(), refresh=True)
+                    self._need_recompose = False
+                    return
 
                 # Handle Ctrl+E specially - pause Live while the pager is active
                 if event == KeyEvent.CTRL_E:

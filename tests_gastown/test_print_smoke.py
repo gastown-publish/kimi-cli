@@ -20,7 +20,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 PASS = "\033[92m✓\033[0m"
 FAIL = "\033[91m✗\033[0m"
 _passed = 0
@@ -103,7 +102,9 @@ def main() -> int:
         timeout=15,
     )
     check("Help command exits 0", result.returncode == 0)
-    help_text = result.stdout
+    # Strip ANSI escape codes for string comparison
+    import re
+    help_text = re.sub(r'\x1b\[[0-9;]*m', '', result.stdout)
     check("Help mentions --yolo", "--yolo" in help_text)
     check("Help mentions --wire", "--wire" in help_text)
     check("Help mentions --print", "--print" in help_text)

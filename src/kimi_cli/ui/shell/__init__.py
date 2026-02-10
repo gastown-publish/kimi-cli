@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import shlex
 from collections.abc import Awaitable, Coroutine
 from dataclasses import dataclass
@@ -84,19 +85,13 @@ class Shell:
 
                     # Check for queued type-ahead messages before prompting
                     queued_input: str | None = None
-                    try:
+                    with contextlib.suppress(asyncio.QueueEmpty):
                         queued_input = self._message_queue.get_nowait()
-                    except asyncio.QueueEmpty:
-                        pass
 
                     if queued_input is not None:
-                        logger.debug(
-                            "Processing queued message: {input}", input=queued_input
-                        )
+                        logger.debug("Processing queued message: {input}", input=queued_input)
                         if queued_input.strip():
-                            console.print(
-                                f"[grey50]queued >[/grey50] {queued_input}"
-                            )
+                            console.print(f"[grey50]queued >[/grey50] {queued_input}")
                             await self.run_soul_command(queued_input)
                         continue
 

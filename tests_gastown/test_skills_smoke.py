@@ -20,7 +20,6 @@ import sys
 import time
 import uuid
 
-
 PASS = "\033[92m✓\033[0m"
 FAIL = "\033[91m✗\033[0m"
 _passed = 0
@@ -188,7 +187,7 @@ def main() -> int:
                 check(
                     f"/{cmd_name} available",
                     cmd_name in command_names,
-                    f"not found",
+                    "not found",
                 )
 
     finally:
