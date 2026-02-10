@@ -40,3 +40,8 @@ target/
 node_modules/
 static/
 .memo/
+
+# Gas Town overlay files (per-worktree, not shared)
+CLAUDE.md
+CLAUDE.local.md
+state.json
