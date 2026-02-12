@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import shutil
@@ -58,10 +59,8 @@ def _setup_kimigas_config(api_key: str) -> None:
 
     cfg: dict[str, Any] = {}
     if cfg_file.exists():
-        try:
+        with contextlib.suppress(json.JSONDecodeError):
             cfg = json.loads(cfg_file.read_text())
-        except json.JSONDecodeError:
-            pass
 
     cfg["hasCompletedOnboarding"] = True
     cfg["lastOnboardingVersion"] = "2.1.38"
@@ -84,9 +83,7 @@ def _find_claude_binary() -> str | None:
     return shutil.which("claude")
 
 
-@cli.command(
-    context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
-)
+@cli.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
 def claude(
     ctx: typer.Context,
     work_dir: Annotated[
@@ -161,14 +158,16 @@ def claude(
 
     # Build environment
     env = get_clean_env()
-    env.update({
-        # Redirect to Kimi's Anthropic-compatible endpoint
-        "ANTHROPIC_BASE_URL": _KIMI_ANTHROPIC_BASE_URL,
-        "ANTHROPIC_API_KEY": kimi_api_key,
-        "DISABLE_COST_WARNINGS": "true",
-        # Use isolated config dir
-        "CLAUDE_CONFIG_DIR": str(_CLAUDE_CONFIG_DIR),
-    })
+    env.update(
+        {
+            # Redirect to Kimi's Anthropic-compatible endpoint
+            "ANTHROPIC_BASE_URL": _KIMI_ANTHROPIC_BASE_URL,
+            "ANTHROPIC_API_KEY": kimi_api_key,
+            "DISABLE_COST_WARNINGS": "true",
+            # Use isolated config dir
+            "CLAUDE_CONFIG_DIR": str(_CLAUDE_CONFIG_DIR),
+        }
+    )
 
     # Build claude command arguments
     claude_args = [claude_path]
@@ -192,4 +191,4 @@ def claude(
         os.execvpe(claude_args[0], claude_args, env)
     except OSError as e:
         typer.echo(f"Error launching Claude Code: {e}", err=True)
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from None
