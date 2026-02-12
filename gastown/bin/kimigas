@@ -19,7 +19,7 @@
 set -euo pipefail
 
 SCRIPT_NAME="$(basename "$0")"
-VERSION="1.9.1"
+VERSION="1.10.0"
 
 # --- Configuration ---
 KIMI_BIN="${KIMI_BIN:-kimi}"
