@@ -9,6 +9,7 @@
 #   kimigas --yolo -p "do something"  # One-shot mode (polecat)
 #   kimigas --wire                    # Wire protocol mode (programmatic)
 #   kimigas --print                   # Non-interactive print mode
+#   kimigas run claude                # Run Claude Code with Kimi backend
 #
 # Gas Town integration:
 #   gt config agent set kimigas "kimigas --yolo"
@@ -76,12 +77,17 @@ USAGE:
     kimigas --wire                     Wire protocol (JSON-RPC 2.0 via stdin/stdout)
     kimigas --print --input-format stream-json --output-format stream-json
                                        Streaming JSON mode (programmatic)
+    kimigas run claude                 Run Claude Code with Kimi K2.5 backend
+    kimigas run claude --yolo          Run Claude Code with auto-approve
 
 GAS TOWN INTEGRATION:
     gt config agent set kimigas "kimigas --yolo"
     gt crew add myname --rig kimigas
     gt crew start kimigas myname --agent kimigas
     gt sling gt-abc kimigas --agent kimigas
+
+COMMANDS:
+    run claude           Run Claude Code with Kimi K2.5 backend via claude-code-router
 
 FLAGS:
     --yolo, --yes, -y    Auto-approve all actions (required for gastown)
@@ -93,6 +99,10 @@ FLAGS:
     -h, --help           Show this help
 
     All other flags are passed through to kimi-cli.
+
+REQUIREMENTS FOR 'run claude':
+    - Claude Code: npm install -g @anthropic-ai/claude-code
+    - claude-code-router: pip install claude-code-router
 
 ENVIRONMENT:
     KIMI_BIN             Path to kimi binary (default: kimi)
