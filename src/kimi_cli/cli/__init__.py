@@ -14,6 +14,7 @@ from .info import cli as info_cli
 from .mcp import cli as mcp_cli
 from .run import cli as run_cli
 from .web import cli as web_cli
+from .run import claude as run_claude
 
 
 class Reload(Exception):
@@ -219,6 +220,13 @@ def kimi(
             help="Alias for `--print --output-format text --final-message-only`.",
         ),
     ] = False,
+    claude_mode: Annotated[
+        bool,
+        typer.Option(
+            "--claude",
+            help="Run Claude Code with Kimi K2.5 backend. Alias for 'kimigas run claude'.",
+        ),
+    ] = False,
     # Customization
     agent: Annotated[
         Literal["default", "okabe"] | None,
@@ -307,6 +315,12 @@ def kimi(
         return  # skip rest if a subcommand is invoked
 
     del version  # handled in the callback
+
+    # Handle --claude flag - run Claude Code with Kimi backend
+    if claude_mode:
+        # Delegate to the run_claude command with yolo flag
+        run_claude(ctx, yolo=yolo)
+        return
 
     from kaos.path import KaosPath
 
