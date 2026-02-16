@@ -10,6 +10,7 @@ import typer
 
 from kimi_cli.constant import VERSION
 
+from .convoy import cli as convoy_cli
 from .info import cli as info_cli
 from .mcp import cli as mcp_cli
 from .run import cli as run_cli
@@ -621,6 +622,7 @@ def kimi(
         run_web_server(open_browser=True)
 
 
+cli.add_typer(convoy_cli, name="convoy")
 cli.add_typer(info_cli, name="info")
 
 
