@@ -25,6 +25,7 @@ class GlobalConfig(BaseModel):
 
     default_model: str = Field(description="Current default model key")
     default_thinking: bool = Field(description="Current default thinking mode")
+    enable_stt: bool = Field(description="Whether speech-to-text is enabled")
     models: list[ConfigModel] = Field(description="All configured models")
 
 
@@ -33,6 +34,7 @@ class UpdateGlobalConfigRequest(BaseModel):
 
     default_model: str | None = Field(default=None, description="New default model key")
     default_thinking: bool | None = Field(default=None, description="New default thinking mode")
+    enable_stt: bool | None = Field(default=None, description="New speech-to-text setting")
     restart_running_sessions: bool | None = Field(
         default=None, description="Whether to restart running sessions"
     )
@@ -101,6 +103,7 @@ def _build_global_config() -> GlobalConfig:
     return GlobalConfig(
         default_model=config.default_model,
         default_thinking=config.default_thinking,
+        enable_stt=config.enable_stt,
         models=models,
     )
 
@@ -147,6 +150,10 @@ async def update_global_config(
     # Update default_thinking
     if request.default_thinking is not None:
         config.default_thinking = request.default_thinking
+
+    # Update enable_stt
+    if request.enable_stt is not None:
+        config.enable_stt = request.enable_stt
 
     # Save config
     save_config(config)

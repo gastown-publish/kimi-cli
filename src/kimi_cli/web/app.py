@@ -132,6 +132,7 @@ def _get_network_addresses() -> list[str]:
 
 
 ENV_LAN_ONLY = "KIMI_WEB_LAN_ONLY"
+ENV_ENABLE_STT = "KIMI_WEB_ENABLE_STT"
 
 
 def create_app(
@@ -141,6 +142,7 @@ def create_app(
     restrict_sensitive_apis: bool | None = None,
     max_public_path_depth: int | None = None,
     lan_only: bool | None = None,
+    enable_stt: bool | None = None,
 ) -> FastAPI:
     """Create the FastAPI application for Kimi CLI web UI."""
 
@@ -153,6 +155,7 @@ def create_app(
         int(env_max_depth_str) if env_max_depth_str and env_max_depth_str.isdigit() else None
     )
     env_lan_only = _load_env_flag(ENV_LAN_ONLY)
+    env_enable_stt = os.environ.get(ENV_ENABLE_STT)
 
     session_token = session_token if session_token is not None else env_token
     allowed_origins = allowed_origins if allowed_origins is not None else env_origins
@@ -165,6 +168,20 @@ def create_app(
     )
     lan_only = lan_only if lan_only is not None else env_lan_only
 
+    # Determine enable_stt: CLI arg > env var > config file > default (True)
+    if enable_stt is None:
+        if env_enable_stt is not None:
+            enable_stt = env_enable_stt.lower() in {"1", "true", "yes", "on"}
+        else:
+            # Load from config file, default to True if not set
+            from kimi_cli.config import load_config
+
+            try:
+                config = load_config()
+                enable_stt = config.enable_stt
+            except Exception:
+                enable_stt = True  # Default to enabled on first run if config doesn't exist
+
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         app.state.startup_dir = os.getcwd()
@@ -174,6 +191,7 @@ def create_app(
         app.state.restrict_sensitive_apis = restrict_sensitive_apis
         app.state.max_public_path_depth = max_public_path_depth
         app.state.lan_only = lan_only
+        app.state.enable_stt = enable_stt
 
         # Start KimiCLI runner
         runner = KimiCLIRunner()
@@ -289,6 +307,7 @@ def run_web_server(
     dangerously_omit_auth: bool = False,
     restrict_sensitive_apis: bool | None = None,
     lan_only: bool = True,
+    enable_stt: bool | None = None,
 ) -> None:
     """Run the web server."""
     import sys
@@ -400,6 +419,10 @@ def run_web_server(
     os.environ[ENV_ENFORCE_ORIGIN] = "1" if (public_mode and not lan_only) else "0"
     os.environ[ENV_RESTRICT_SENSITIVE_APIS] = "1" if restrict_sensitive_apis else "0"
     os.environ[ENV_LAN_ONLY] = "1" if lan_only else "0"
+    if enable_stt is not None:
+        os.environ[ENV_ENABLE_STT] = "1" if enable_stt else "0"
+    else:
+        os.environ.pop(ENV_ENABLE_STT, None)
 
     # Determine display URLs
     display_hosts: list[tuple[str, str]] = []

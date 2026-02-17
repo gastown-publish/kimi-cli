@@ -55,6 +55,13 @@ def web(
             help="Only allow access from local network (default) or allow public access.",
         ),
     ] = True,
+    stt: Annotated[
+        bool | None,
+        typer.Option(
+            "--stt/--no-stt",
+            help="Enable speech-to-text in web UI. Default: from config or enabled.",
+        ),
+    ] = None,
 ):
     """Run Kimi Code CLI web interface."""
     from kimi_cli.web.app import run_web_server
@@ -77,4 +84,5 @@ def web(
         dangerously_omit_auth=dangerously_omit_auth,
         restrict_sensitive_apis=restrict_sensitive_apis,
         lan_only=lan_only,
+        enable_stt=stt,
     )
