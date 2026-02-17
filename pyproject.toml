@@ -60,7 +60,6 @@ source-exclude = ["examples/**/*", "tests/**/*", "src/kimi_cli/deps/**/*"]
 members = [
     "packages/kosong",
     "packages/kaos",
-    "packages/kimi-code",
     "sdks/kimi-sdk",
 ]
 
