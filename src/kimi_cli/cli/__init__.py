@@ -13,9 +13,9 @@ from kimi_cli.constant import VERSION
 from .convoy import cli as convoy_cli
 from .info import cli as info_cli
 from .mcp import cli as mcp_cli
+from .run import claude as run_claude
 from .run import cli as run_cli
 from .web import cli as web_cli
-from .run import claude as run_claude
 
 
 class Reload(Exception):
