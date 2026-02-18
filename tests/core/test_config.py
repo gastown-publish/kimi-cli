@@ -23,6 +23,7 @@ def test_default_config_dump():
             "default_model": "",
             "default_thinking": False,
             "default_yolo": False,
+            "enable_stt": True,
             "models": {},
             "providers": {},
             "loop_control": {
